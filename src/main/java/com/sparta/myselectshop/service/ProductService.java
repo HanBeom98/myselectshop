@@ -8,13 +8,15 @@ import com.sparta.myselectshop.entity.User;
 import com.sparta.myselectshop.entity.UserRoleEnum;
 import com.sparta.myselectshop.naver.dto.ItemDto;
 import com.sparta.myselectshop.repository.ProductRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,16 +49,19 @@ public class ProductService {
         return new ProductResponseDto(product);
     }
 
+    @Transactional(readOnly = true)
     public Page<ProductResponseDto> getProducts(User user, int page, int size, String sortBy, boolean isAsc) {
+
         Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
         Sort sort = Sort.by(direction, sortBy);
+
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        UserRoleEnum userRole = user.getRole();
+        UserRoleEnum userRoleEnum = user.getRole();
 
         Page<Product> productList;
 
-        if (userRole == UserRoleEnum.USER) {
+        if (userRoleEnum == UserRoleEnum.USER) {
             productList = productRepository.findAllByUser(user, pageable);
         } else {
             productList = productRepository.findAll(pageable);
