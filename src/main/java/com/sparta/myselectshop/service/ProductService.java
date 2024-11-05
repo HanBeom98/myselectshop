@@ -8,7 +8,7 @@ import com.sparta.myselectshop.naver.dto.ItemDto;
 import com.sparta.myselectshop.repository.FolderRepository;
 import com.sparta.myselectshop.repository.ProductFolderRepository;
 import com.sparta.myselectshop.repository.ProductRepository;
-import com.sparta.myselectshop.repository.UserRepository;
+import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
@@ -19,8 +19,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -60,7 +58,6 @@ public class ProductService {
 
         Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
         Sort sort = Sort.by(direction, sortBy);
-
         Pageable pageable = PageRequest.of(page, size, sort);
 
         UserRoleEnum userRoleEnum = user.getRole();
@@ -106,5 +103,18 @@ public class ProductService {
         }
 
         productFolderRepository.save(new ProductFolder(product, folder));
+    }
+
+    public Page<ProductResponseDto> getProductsInFolder(Long folderId, int page, int size, String sortBy, boolean isAsc, User user) {
+
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // findAllByUserAndProductFolderList_FolderId는 Page<Product>를 반환해야 합니다.
+        Page<Product> productList = productRepository.findAllByUserAndProductFolderList_FolderId(user, folderId, pageable);
+
+        // Product -> ProductResponseDto로 매핑
+        return productList.map(ProductResponseDto::new);
     }
 }
